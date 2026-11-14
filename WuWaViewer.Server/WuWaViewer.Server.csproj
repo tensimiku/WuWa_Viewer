@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <NuGetAudit>false</NuGetAudit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WuWaViewer.Net9\cue\CUE4Parse.Net9.csproj" />
+    <ProjectReference Include="..\WuWaViewer.Net9\conv\CUE4Parse-Conversion.Net9.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="native\CUE4Parse-Natives.dll" Condition="Exists('native\CUE4Parse-Natives.dll')" CopyToOutputDirectory="PreserveNewest" Link="CUE4Parse-Natives.dll" />
+    <None Include="native\oodle-data-shared.dll" Condition="Exists('native\oodle-data-shared.dll')" CopyToOutputDirectory="PreserveNewest" Link="oodle-data-shared.dll" />
+  </ItemGroup>
+</Project>
+

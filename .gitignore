@@ -1,0 +1,33 @@
+# Build outputs (.NET & Vite)
+**/bin/
+**/obj/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/tsconfig.tsbuildinfo
+
+# Local machine secrets, configs, native binaries & runtime caches
+.env
+.env.local
+**/appsettings.Local.json
+**/appsettings.*.Local.json
+**/cache/
+cache/
+keys.json
+WuWaViewer.Server/native/*.dll
+WuWaViewer.Server/native/*.so
+WuWaViewer.Server/native/*.dylib
+
+# External / nested repositories
+# (`CUE4Parse/` is tracked as a git submodule in `.gitmodules`; others stay ignored)
+FModel/
+wuwa-keys/
+ref/
+
+# User-specific IDE / scratch artifacts
+*.user
+*.suo
+*.log
+scratch/
+.DS_Store
+Thumbs.db

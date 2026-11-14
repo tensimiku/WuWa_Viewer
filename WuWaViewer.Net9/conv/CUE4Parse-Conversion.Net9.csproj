@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <RootNamespace>CUE4Parse_Conversion</RootNamespace>
+    <AssemblyName>CUE4Parse-Conversion</AssemblyName>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>TRACE</DefineConstants>
+    <NoWarn>CS8632;CS0618;CS1591</NoWarn>
+    <NuGetAudit>false</NuGetAudit>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\cue\CUE4Parse.Net9.csproj" />
+    <PackageReference Include="AssetRipper.TextureDecoder" Version="2.6.2" />
+    <PackageReference Include="SharpGLTF.Core" Version="1.0.6" />
+    <PackageReference Include="SharpGLTF.Toolkit" Version="1.0.6" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+    <PackageReference Include="SkiaSharp" Version="2.88.9" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <Cue4ParseRoot Condition="'$(Cue4ParseRoot)' == '' and '$(FModelDir)' != ''">$(FModelDir)CUE4Parse\</Cue4ParseRoot>
+    <Cue4ParseRoot Condition="'$(Cue4ParseRoot)' == ''">$(MSBuildThisFileDirectory)..\..\CUE4Parse\</Cue4ParseRoot>
+    <ConvDir>$(Cue4ParseRoot)CUE4Parse-Conversion\</ConvDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(ConvDir)**\*.cs" Exclude="$(ConvDir)obj\**;$(ConvDir)bin\**;$(ConvDir)Materials\MaterialParameters.cs" Link="%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="MaterialParametersNet9.cs" />
+    <EmbeddedResource Include="$(ConvDir)Resources\tegra_swizzle_x64.dll" LogicalName="CUE4Parse_Conversion.Resources.tegra_swizzle_x64.dll" />
+    <EmbeddedResource Include="$(ConvDir)Resources\crunch.dll" LogicalName="CUE4Parse_Conversion.Resources.crunch.dll" />
+  </ItemGroup>
+</Project>
+
