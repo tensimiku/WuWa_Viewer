@@ -310,3 +310,94 @@ public sealed record CutsceneDetailDto(
     List<CutsceneActorDto> Actors,
     List<CutsceneCameraCutDto> CameraCuts
 );
+
+public sealed record RbfCurveKeyDto(
+    float Time,
+    float Value
+);
+
+public sealed record RbfWeightModifierDto(
+    string SrcWeight,
+    int DstDriverIndex,
+    string DstWeight,
+    RbfCurveKeyDto[] FactorCurve
+);
+
+public sealed record RbfPoseTargetDto(
+    float[] DriverValues,
+    Dictionary<string, float> DrivenWeights
+);
+
+public sealed record RbfPrecomputationTableDto(
+    float RotationLimitX,
+    float RotationLimitY,
+    float RotationLimitZ,
+    float Interval,
+    int CountY,
+    int CountZ,
+    float[][] Weights
+);
+
+public sealed record SkeletonRbfDriverDto(
+    int Index,
+    string DriverName,
+    string DriverBoneName,
+    string BaseBoneName,
+    string? BaseParentBoneName,
+    float[] BaseCompRestPosCm,
+    float[] BaseCompRestQuat,
+    float[] DriverCompRestPosCm,
+    float RestRadiusCm,
+    string[] DriverAttributes,
+    string[] DrivenMorphTargets,
+    RbfWeightModifierDto? WeightModifier,
+    List<RbfPoseTargetDto> DriveSettings,
+    RbfPrecomputationTableDto? Precomputation
+);
+
+public sealed record PoseAssetBoneDeltaDto(
+    string BoneName,
+    float[] DeltaTranslationCm,
+    float[] DeltaRotationQuat
+);
+
+public sealed record PoseDriverPoseDto(
+    string PoseName,
+    float[] TargetRotationPitchYawRoll,
+    float[] TargetRotationQuat,
+    float TargetScale,
+    bool IsHidden,
+    List<PoseAssetBoneDeltaDto> DrivenBones
+);
+
+public sealed record PoseDriverNodeDto(
+    string NodeName,
+    string SourceBone,
+    string? SourceParentBone,
+    float[] SourceCompRestQuat,
+    float[] SourceLocalRestQuat,
+    List<string> OnlyDriveBones,
+    string SolverType,
+    string FunctionType,
+    string DistanceMethod,
+    float Radius,
+    bool AutomaticRadius,
+    float WeightThreshold,
+    string NormalizeMethod,
+    string PoseAssetPath,
+    bool AdditivePose,
+    Dictionary<string, float[]> BoneLocalRestQuats,
+    Dictionary<string, float[]> BoneCompRestQuats,
+    Dictionary<string, float[]> BoneParentCompRestQuats,
+    List<PoseDriverPoseDto> Poses
+);
+
+public sealed record RigRbfConfigDto(
+    string SkeletonPath,
+    string? MeshPath,
+    string? CharacterId,
+    string? PrecomputationPath,
+    string? SourceAbp,
+    List<SkeletonRbfDriverDto> RbfDrivers,
+    List<PoseDriverNodeDto> PoseDrivers
+);

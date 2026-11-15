@@ -81,10 +81,24 @@ WuWa shaders rely on specific channels of `COLOR_0`:
 
 ### 3.4 Shape Keys (Morph Targets) & Corrective Pose Drivers
 - `ModelService` exports all skeletal `MorphTargets` into the GLB (`exportMorphTargets: true`), so Blender imports them as **Shape Keys** (including facial curves like `E_Close`, `E_Smile_R`, `M_Laugh`, `Pupil_Scale`, face expression presets like `S_01`–`S_30`, and body/limb pose shapes like `L_P`/`L_F`/`L_B`/`L_Up`/`L_F_U`/`L_B_U`/`L_Up_U` and `R_*`).
-- **Why corrective Shape Keys do not auto-deform with bone rotation in Blender**:
-  - In UE, corrective helper bones and pose blending are evaluated at runtime inside `AnimBlueprint` `PoseDriver` nodes (`AnimGraphNode_PoseDriver` using `UPoseAsset` / RBF solvers — e.g. `ABP_R2T1DaniyaMd10011_PC` driving skirt/hair helper bones via `PD_PoseAsset_Thigh` from `Bip001LThigh`/`Bip001RThigh`/`Bip001Head`), and AnimSequence float curves.
-  - Standard **glTF 2.0 (`.glb`) has no schema for bone-rotation-driven RBF Shape Key drivers**, so WuWaViewer exports geometry + static Shape Keys with `0.0` default weights.
-  - To make `L_*` / `R_*` deform automatically when posing bones in Blender, attach **Blender Drivers** (Rotational Difference / Transform Channel expressions on upper-arm/thigh bones, or a Blender RBF driver add-on) to the imported Shape Keys, and constrain helper bones (`Bone_Skirt*`, `Bone_Hair*`) manually.
+- **Why raw GLBs do not auto-deform with bone rotation in Blender**:
+  - In UE, corrective body morphs are driven by `USkeleton` `RBFDrivers` (paired with `*RBFPrecomputation` LUT assets) and helper bones (`Bone_Skirt*`, `Bone_Piao*`, `Bone_Hair*`) are driven by `AnimGraphNode_PoseDriver` nodes (`UPoseAsset`, e.g. `ABP_R2T1DaniyaMd10011_PC` driving skirt/hair helper bones via `PD_PoseAsset_Thigh` from `Bip001LThigh`/`Bip001RThigh`/`Bip001Head`).
+  - Standard **glTF 2.0 (`.glb`) has no schema for bone-rotation-driven RBF Shape Key drivers or PoseDriver graphs**, so the bare `.glb` exports geometry + static Shape Keys with `0.0` default weights.
+- **Built-in Blender RBF & PoseDriver Addon / CLI (`scripts/blender/wuwa_rbf_rig.py`)**:
+  - Compatible with **Blender 4.2+ and 5.2 LTS** (single-file addon **or** headless CLI script), fed by `GET /api/rig/rbf?characterId=...` (or `?meshPath=...` / `?skeletonPath=...`).
+  - **Blender UI Addon**: Install [`scripts/blender/wuwa_rbf_rig.py`](../scripts/blender/wuwa_rbf_rig.py) via *Edit → Preferences → Add-ons → Install from Disk*, then open **View3D → Sidebar (`N`) → WuWa Rig**:
+    1. Click **Fetch & Apply RBF Rig** (from a running `WuWaViewer.Server`, e.g. `http://localhost:5180`) or **Apply from JSON File** (saved `/api/rig/rbf` response).
+    2. Choose solver mode: **`Precompute LUT (Game Exact)`** (evaluates Kuro's exact `RBFPrecomputation` 2D bilinear lookup table + cross-driver `WeightModifier` suppression/boost) or **`Analytic RBF`** (smooth Gaussian solve from `DriveSettings` poses).
+    3. Skirt/hair `PoseDriver` nodes create hidden non-deforming `MCH_PD_*` bones in collection `WuWa_PoseDriver_MCH` and attach additive `COPY_LOCATION` (`use_offset`) + `COPY_ROTATION` (`mix_mode='BEFORE'`) constraints so manual posing still layers cleanly on top.
+  - **Headless CLI**:
+    ```powershell
+    blender -b --python scripts/blender/wuwa_rbf_rig.py -- `
+      --glb path/to/Model.glb --url http://localhost:5180 --character FemaleMS/Daniya --save character_rigged.blend
+    ```
+    Supports `--json <file.json>`, `--mesh <uePath>`, `--skeleton <uePath>`, `--solver PRECOMPUTE|ANALYTIC`, `--no-pose-drivers`, and `--armature <name>`.
+  - **Round-Trip Safety (Before Exporting Modded `.glb` / `.fbx` Back to WuWaViewer or UE)**:
+    - Toggle **Export-Safe Mute (Safe for UE/glTF Export)** in the `WuWa Rig` panel (or run **Remove RBF Rig**) before exporting, so glTF/FBX export does not bake active preview morph weights or PoseDriver bone constraints on top of UE's runtime drivers.
+    - For static renders or non-UE animation exports, click **Bake RBF to Keyframes** to write evaluated Shape Key curves and automatically mute live drivers.
 - In Blender **Export glTF 2.0**:
   - Enable **Shape Keys** (`Data -> Shape Keys`).
   - **Do NOT check "Apply Modifiers"** on meshes that have Shape Keys (applying modifiers in Blender strips shape keys unless baked manually per key).

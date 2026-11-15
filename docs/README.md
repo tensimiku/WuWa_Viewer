@@ -30,7 +30,10 @@ WuWaViewer/
 │   ├── appsettings.Local.example.json # Template for gitignored local path overrides
 │   ├── Program.cs                 # .env + config loader, Minimal API endpoints, WUWA_API_URL host
 │   ├── Models/ViewerDtos.cs       # Shared C# record DTOs matching frontend/src/types.ts
-│   └── Services/                  # GameAssetService, ModelService, AnimationService, PhysicsService, CutsceneService, CoordConvert
+│   └── Services/                  # GameAssetService, ModelService, AnimationService, PhysicsService, RbfService, CutsceneService, CoordConvert
+├── scripts/
+│   └── blender/
+│       └── wuwa_rbf_rig.py        # Blender 4.2+/5.2 LTS addon & CLI for USkeleton RBFDrivers & PoseDrivers
 ├── frontend/                      # React 18 + Three.js 0.172 + TypeScript + Vite 6
 │   ├── vite.config.ts             # Dev server on VITE_PORT (:5173), proxies /api -> VITE_API_TARGET (:5180)
 │   └── src/
@@ -54,7 +57,7 @@ WuWaViewer/
 Configuration resolves in order of increasing precedence: `appsettings.json` → `appsettings.Local.json` (gitignored) → `.env` / environment variables (`WUWA_GAME_DIR`, `WUWA_KEYS_PATH`, `WUWA_CACHE_DIR`) → CLI args:
 - **`GameDir` (`WUWA_GAME_DIR`)**: Path to your local *Wuthering Waves* installation directory (contains `Client/Content/Paks`, etc.). **Required** (intentionally blank in tracked `appsettings.json`).
 - **`KeysPath` (`WUWA_KEYS_PATH`)**: Path to AES keys JSON (`wuwa-keys/keys.json`, containing `mainKey` and `dynamicKeys`).
-- **`CacheDir` (`WUWA_CACHE_DIR`)**: Disk cache root (`cache` by default) storing extracted `manifest/`, `glb/`, `tex/`, and `anim/` files.
+- **`CacheDir` (`WUWA_CACHE_DIR`)**: Disk cache root (`cache` by default) storing extracted `manifest/`, `glb/`, `tex/`, `anim/`, and `rbf/` files.
 - **`WUWA_API_URL` / `VITE_API_TARGET` / `VITE_PORT`**: Optional backend/frontend bind & proxy URLs (default `:5180` / `:5173`).
 
 ### Launch Commands
@@ -101,6 +104,7 @@ npm run build
 | `GET /api/animations` | `?characterId=&includeShared=true` | Character + matching `BaseAnim` + `SequenceAnim` list (with `Rib_*` pairing) |
 | `GET /api/animation` | `?path=&ribbonPath=` | `AnimationPayloadDto` (tracks in glTF space + `FloatCurves` morph curves + `RibbonLayer`) |
 | `GET /api/physics` | `?characterId=&abp=` | `PhysicsConfigDto` extracted from `AnimNode_KawaiiPhysicsGroup` in `ABP_*` / `*_PC` |
+| `GET /api/rig/rbf` | `?meshPath=&skeletonPath=&characterId=&abp=` | `RigRbfConfigDto` (`USkeleton` `RBFDrivers` + `Precomputations` LUTs & `PoseDriver` / `UPoseAsset` deltas for Blender rigging) |
 | `GET /api/cutscenes` | `?character=&category=&q=&limit=120` | `CutsceneSummaryDto[]` |
 | `GET /api/cutscene` | `?path=` | LevelSequence tracks (skeletal anims, 3D actor/camera transforms, focal length FOV) |
 
@@ -137,5 +141,6 @@ npm run build
 | Verifying unknown UE texture channel packing or `StaticSwitch` combinations | [SHADERS_AND_TEXTURES.md](./SHADERS_AND_TEXTURES.md), then grep `ref/ue5-wuwa-shader/Plugins/WuwaToon/Shaders/Private/` (`.ush`, `Specs/`, `Specs/registry/`) — read-only |
 | Bone animation glitch, `Rib_*` layering, facial morph curves | `WuWaViewer.Server/Services/AnimationService.cs`; `frontend/src/animation/AnimationEngine.ts` → `captureRestPose`, `applyTrackList`, `evalFloatCurve` |
 | Hair/skirt physics jitter or missing bone chains | `WuWaViewer.Server/Services/PhysicsService.cs`; `frontend/src/physics/KawaiiPhysicsSolver.ts` |
+| Blender corrective shape keys (`L_*`/`R_*`) & PoseDriver helper bones | `WuWaViewer.Server/Services/RbfService.cs` (`GET /api/rig/rbf`); `scripts/blender/wuwa_rbf_rig.py`; [BLENDER_MODDING_WORKFLOW.md §3.4](./BLENDER_MODDING_WORKFLOW.md#34-shape-keys-morph-targets--corrective-pose-drivers) |
 | LevelSequence cutscene camera/actor transform | `WuWaViewer.Server/Services/CutsceneService.cs`; `frontend/src/animation/AnimationEngine.ts` → `applyCutsceneActorTransform` |
 | Shared C# ↔ TypeScript API schema changes | Must match in **both** `WuWaViewer.Server/Models/ViewerDtos.cs` (PascalCase C#) and `frontend/src/types.ts` (camelCase JSON) |

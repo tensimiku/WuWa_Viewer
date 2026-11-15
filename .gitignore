@@ -1,6 +1,9 @@
-# Build outputs (.NET & Vite)
+# Build outputs (.NET & Vite & Python/Blender)
 **/bin/
 **/obj/
+**/__pycache__/
+*.py[cod]
+*.blend1
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/

@@ -27,6 +27,7 @@ builder.Services.AddSingleton<GameAssetService>();
 builder.Services.AddSingleton<ModelService>();
 builder.Services.AddSingleton<AnimationService>();
 builder.Services.AddSingleton<PhysicsService>();
+builder.Services.AddSingleton<RbfService>();
 builder.Services.AddSingleton<CutsceneService>();
 
 builder.Services.AddResponseCompression(opts =>
@@ -202,6 +203,22 @@ app.MapGet("/api/physics", (string characterId, string? abp, PhysicsService phys
 {
     var cfg = physSvc.GetCharacterPhysics(characterId, abp);
     return cfg != null ? Results.Ok(cfg) : Results.Ok(new PhysicsConfigDto(characterId, "", []));
+});
+
+app.MapGet("/api/rig/rbf", async (
+    string? meshPath,
+    string? skeletonPath,
+    string? characterId,
+    string? abp,
+    RbfService rbfSvc) =>
+{
+    if (string.IsNullOrWhiteSpace(meshPath) && string.IsNullOrWhiteSpace(skeletonPath) && string.IsNullOrWhiteSpace(characterId))
+        return Results.BadRequest(new { error = "Provide meshPath, skeletonPath, or characterId." });
+
+    var cfg = await rbfSvc.GetRigRbfConfigAsync(meshPath, skeletonPath, characterId, abp);
+    return cfg != null
+        ? Results.Ok(cfg)
+        : Results.NotFound(new { error = "No matching skeleton or RBF data found." });
 });
 
 app.MapGet("/api/cutscenes", (string? character, string? category, string? q, int limit = 120) =>
